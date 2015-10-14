@@ -1,4 +1,4 @@
-kernel//home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/ath/ath9k/ath9k.ko
-kernel//home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/ath/ath9k/ath9k_hw.ko
-kernel//home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/ath/ath9k/ath9k_common.ko
-kernel//home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/ath/ath9k/ath9k_htc.ko
+kernel//home/castle/kernel/ieiit-kbp4111-80211/backports4111/drivers/net/wireless/ath/ath9k/ath9k.ko
+kernel//home/castle/kernel/ieiit-kbp4111-80211/backports4111/drivers/net/wireless/ath/ath9k/ath9k_hw.ko
+kernel//home/castle/kernel/ieiit-kbp4111-80211/backports4111/drivers/net/wireless/ath/ath9k/ath9k_common.ko
+kernel//home/castle/kernel/ieiit-kbp4111-80211/backports4111/drivers/net/wireless/ath/ath9k/ath9k_htc.ko

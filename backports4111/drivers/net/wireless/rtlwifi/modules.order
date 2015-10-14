@@ -1,4 +1,4 @@
-kernel//home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/rtlwifi/rtlwifi.ko
-kernel//home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/rtlwifi/rtl_usb.ko
-kernel//home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/rtlwifi/rtl8192c/rtl8192c-common.ko
-kernel//home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/rtlwifi/rtl8192cu/rtl8192cu.ko
+kernel//home/castle/kernel/ieiit-kbp4111-80211/backports4111/drivers/net/wireless/rtlwifi/rtlwifi.ko
+kernel//home/castle/kernel/ieiit-kbp4111-80211/backports4111/drivers/net/wireless/rtlwifi/rtl_usb.ko
+kernel//home/castle/kernel/ieiit-kbp4111-80211/backports4111/drivers/net/wireless/rtlwifi/rtl8192c/rtl8192c-common.ko
+kernel//home/castle/kernel/ieiit-kbp4111-80211/backports4111/drivers/net/wireless/rtlwifi/rtl8192cu/rtl8192cu.ko
