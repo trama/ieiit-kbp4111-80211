@@ -1,0 +1,1 @@
+cmd_/home/castle/kernel/ieiit-kbp4111-80211/compat/compat.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /home/castle/kernel/ieiit-kbp4111-80211/compat/compat.ko /home/castle/kernel/ieiit-kbp4111-80211/compat/compat.o /home/castle/kernel/ieiit-kbp4111-80211/compat/compat.mod.o

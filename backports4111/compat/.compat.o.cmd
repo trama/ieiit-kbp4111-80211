@@ -1,0 +1,1 @@
+cmd_/home/castle/kernel/ieiit-kbp4111-80211/compat/compat.o := ld -m elf_x86_64   -r -o /home/castle/kernel/ieiit-kbp4111-80211/compat/compat.o /home/castle/kernel/ieiit-kbp4111-80211/compat/main.o /home/castle/kernel/ieiit-kbp4111-80211/compat/backport-4.1.o /home/castle/kernel/ieiit-kbp4111-80211/compat/lib-rhashtable.o 

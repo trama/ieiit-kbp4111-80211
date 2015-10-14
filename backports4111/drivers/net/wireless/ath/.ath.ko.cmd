@@ -1,0 +1,1 @@
+cmd_/home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/ath/ath.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/ath/ath.ko /home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/ath/ath.o /home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/ath/ath.mod.o

@@ -1,0 +1,2 @@
+/home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/rtlwifi/rtl8192c/rtl8192c-common.ko
+/home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/rtlwifi/rtl8192c/main.o /home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/rtlwifi/rtl8192c/dm_common.o /home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/rtlwifi/rtl8192c/fw_common.o /home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/rtlwifi/rtl8192c/phy_common.o

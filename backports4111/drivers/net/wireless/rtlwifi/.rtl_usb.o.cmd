@@ -1,0 +1,1 @@
+cmd_/home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/rtlwifi/rtl_usb.o := ld -m elf_x86_64   -r -o /home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/rtlwifi/rtl_usb.o /home/castle/kernel/ieiit-kbp4111-80211/drivers/net/wireless/rtlwifi/usb.o 
