@@ -1,5 +1,6 @@
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-echo "Network IF down"
+echo -e "\E[1;31;43mNetwork IF down\E[0m"
 ifconfig wlan0 down
 
 # this actually disable all ath9k related modules
@@ -12,17 +13,21 @@ echo "Re-loading compat"
 # first one is the already compiled compat module in the system /lib folder
 modprobe compat
 
-echo "Reloading cfg+mac 80211"
+echo "Reloading (NEW) cfg+mac 80211"
 # then the currently (just) compiled ones, in the following order
-insmod net/wireless/cfg80211.ko
-insmod net/mac80211/mac80211.ko
+insmod $DIR/net/wireless/cfg80211.ko
+insmod $DIR/net/mac80211/mac80211.ko
 
-echo "Realoading ath9k"
-#insmod drivers/net/wireless/ath/ath.ko
-#insmod drivers/net/wireless/ath/ath9k/ath9k_hw.ko
-#insmod drivers/net/wireless/ath/ath9k/ath9k_common.ko
-#insmod drivers/net/wireless/ath/ath9k/ath9k.ko
-modprobe rtl8192cu
+if [ -z $1 ]; then 
+	echo -e "Realoading (NEW) ath9k"
+	insmod $DIR/drivers/net/wireless/ath/ath.ko
+	insmod $DIR/drivers/net/wireless/ath/ath9k/ath9k_hw.ko
+	insmod $DIR/drivers/net/wireless/ath/ath9k/ath9k_common.ko
+	insmod $DIR/drivers/net/wireless/ath/ath9k/ath9k.ko
+else
+	echo "Realoading (LEGACY) rtl8192cu"
+	modprobe rtl8192cu
+fi
 
-echo "Network IF up"
+echo -e "\E[1;31;43mNetwork IF up\E[0m"
 ifconfig wlan0 up

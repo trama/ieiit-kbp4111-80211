@@ -7,16 +7,20 @@
 
 #include <endian.h>
 
-
-
 typedef struct {
-  uint64_t tsc;
-  char id[8];
-  int success;
+    uint64_t tsc;
+    char id[8];
+    char rx_signal;
+    char txrxaddr[38];
 } data_sched_t;
 
+static __inline__ unsigned long long rdtsc(void) {
+    unsigned hi, lo;
+    __asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
+    return ( (unsigned long long)lo)|( ((unsigned long long)hi)<<32 );
+}
 
-int main(void){
+int main(void) {
    int ret, fd;
    int flags;
    data_sched_t data;
@@ -25,18 +29,19 @@ int main(void){
    char tmp;
    uint64_t id;
 
-   fd = open("/dev/schedchar", O_RDONLY);
-  if (fd < 0){
+   fd = open("/dev/raieiitdev", O_RDONLY);
+    if (fd < 0){
       perror("Failed to open the device...");
       return errno;
-   }
+    }
    
    /* Set read no blocking */
    fcntl(fd, F_GETFL, 0);
    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 
    while (1) {
-     ret = read(fd, (char*) &data, sizeof(data_sched_t));        // Read the response from the LKM
+       // Read the response from the LKM
+     ret = read(fd, (char*) &data, sizeof(data_sched_t));
      
      if (ret == -1 && errno==EAGAIN) {
        //printf("EMPTY\n");
@@ -44,16 +49,17 @@ int main(void){
        perror("Failed to read the message from the device.");
        return errno;
      } else {
-       if (data.success == 0) dropped++;
-       printf("RECEIVED: %llu ", data.tsc);
+       //if (data.success == 0) dropped++;
+       
+       printf("RECEIVED: %llu -> %llu", data.tsc, rdtsc() );
 
        /* From little endian to uint64_t */
        memcpy(&id, data.id, 8);
        id = le64toh(id);
 
        /* for (i=0; i<8; i++) printf("%x ", data.id[i]&0xff); */
-       printf("%llu ", id);
-       printf("%d %d\n", data.success, dropped);
+       //printf("%llu ", id);
+       printf(" - dBm=%d, %s\n", data.rx_signal, data.txrxaddr);
      }
      //sleep(1);
    }
