@@ -127,7 +127,6 @@ static ssize_t dev_read_raieiit(struct file *filep, char *buffer, size_t len, lo
 
     data_raieiit = data_raieiit_buf[raieiit_out];
     raieiit_out = (raieiit_out+1) % RAIEIIT_BUF_DIM;
-
     error_count = copy_to_user(buffer, (char*)(&data_raieiit), sizeof(data_raieiit));
 
     if (error_count==0){            // if true then have success
@@ -146,6 +145,118 @@ static ssize_t dev_write_raieiit(struct file *filep, const char *buffer, size_t 
     return 0;
 }
 /* TRAMA ***********************************/
+
+/* MICHELE **********************************************************/
+
+#define  RCL_DEVICE_NAME "rclogdev"    ///< The device will appear at /dev/ractrlchar using this value
+#define  RCL_CLASS_NAME  "rclog"
+
+static int    rclMajorNumber;                  ///< Stores the device number -- determined automatically
+static int    rclNumberOpens = 0;              ///< Counts the number of times the device is opened
+static struct class*  rclogdevClass  = NULL; ///< The device-driver class struct pointer
+static struct device* rclogdevDevice = NULL;
+static int     dev_open_rclog(struct inode *, struct file *);
+static int     dev_release_rclog(struct inode *, struct file *);
+static ssize_t dev_read_rclog(struct file *, char *, size_t, loff_t *);
+static ssize_t dev_write_rclog(struct file *, const char *, size_t, loff_t *);
+static int rclogdev_init(void);
+static void rclogdev_exit(void);
+data_rclog_t data_rclog_buf[RCLOG_BUF_DIM];
+int rclog_in, rclog_out;
+signals_memory signals[SIGNALS_MEMORY_SIZE];
+int signals_index;
+
+static struct file_operations rclFops = {
+   .open = dev_open_rclog,
+   .read = dev_read_rclog,
+   .write = dev_write_rclog,
+   .release = dev_release_rclog,
+};
+
+
+static int dev_open_rclog(struct inode *inodep, struct file *filep) {
+    rclNumberOpens++;
+    printk(KERN_INFO "rclog: Device has been opened %d time(s)\n", rclNumberOpens);
+    return 0;
+}
+
+static int dev_release_rclog(struct inode *inodep, struct file *filep) {
+    printk(KERN_INFO "rclogdev: Device successfully closed\n");
+    return 0;
+}
+
+static int rclogdev_init(void) {
+    printk(KERN_INFO "rclogdev: Initializing the rclogChar\n");
+
+    rclMajorNumber = register_chrdev(0, RCL_DEVICE_NAME, &rclFops);
+    if (rclMajorNumber<0){
+      printk(KERN_ALERT "rclogdev failed to register a major number\n");
+      return rclMajorNumber;
+    }
+    printk(KERN_INFO "rclogdev: registered correctly with major number %d\n", rclMajorNumber);
+
+    rclogdevClass = class_create(THIS_MODULE, RCL_CLASS_NAME);
+    if (IS_ERR(rclogdevClass)){                // Check for error and clean up if there is
+      unregister_chrdev(rclMajorNumber, RCL_DEVICE_NAME);
+      printk(KERN_ALERT "Failed to register device class\n");
+      return PTR_ERR(rclogdevClass);          // Correct way to return an error on a pointer
+    }
+    printk(KERN_INFO "rclogDev: device class registered correctly\n");
+
+    // Register the device driver
+    rclogdevDevice = device_create(rclogdevClass, NULL, MKDEV(rclMajorNumber, 0), NULL, RCL_DEVICE_NAME);
+    if (IS_ERR(rclogdevDevice)){               // Clean up if there is an error
+      class_destroy(rclogdevClass);           // Repeated code but the alternative is goto statements
+      unregister_chrdev(rclMajorNumber, DEVICE_NAME);
+      printk(KERN_ALERT "Failed to create the device\n");
+      return PTR_ERR(rclogdevDevice);
+    }
+    printk(KERN_INFO "rclogDev: device class created correctly\n"); // Made it! device was initialized
+
+    rclog_in = 0;
+    rclog_out = 0;
+    return 0;
+}
+
+static void rclogdev_exit(void) {
+    device_destroy(rclogdevClass, MKDEV(rclMajorNumber, 0));     // remove the device
+    class_unregister(rclogdevClass);                          // unregister the device class
+    class_destroy(rclogdevClass);                             // remove the device class
+    unregister_chrdev(rclMajorNumber, RCL_DEVICE_NAME);             // unregister the major number
+    printk(KERN_INFO "rclogDev: Goodbye from the sched!\n");
+
+}
+
+static ssize_t dev_read_rclog(struct file *filep, char *buffer, size_t len, loff_t *offset) {
+
+    int error_count = 0;
+    data_rclog_t data_rclog;
+    // copy_to_user has the format ( * to, *from, size) and returns 0 on success
+
+    if(rclog_in == rclog_out)
+        return -EAGAIN;
+
+    data_rclog = data_rclog_buf[rclog_out];
+    rclog_out = (rclog_out+1) % RCLOG_BUF_DIM;
+
+    error_count = copy_to_user(buffer, (char*)(&data_rclog), sizeof(data_rclog));
+
+    if (error_count==0){            // if true then have success
+        //printk(KERN_INFO "schedChar: Sent %d characters to the user\n", sizeof(data_sched));
+        return (0);  // clear the position to the start and return 0
+    }
+    else {
+        printk(KERN_INFO "rclogDev: Failed to send %d characters to the user\n", error_count);
+        return -EFAULT;              // Failed -- return a bad address message (i.e. -14)
+    }
+
+    return 0;
+}
+
+static ssize_t dev_write_rclog(struct file *filep, const char *buffer, size_t len, loff_t *offset){
+    return 0;
+}
+/* MICHELE ***********************************/
 
 void ieee80211_configure_filter(struct ieee80211_local *local)
 {
@@ -1333,6 +1444,8 @@ static int __init ieee80211_init(void)
 
 /* ZUUUUUUUUU *****************************/
     raieiitdev_init();
+    rclogdev_init();
+	signals_index = 0;
 
 /* ZUUUUUUUUU *****************************/
 
@@ -1351,21 +1464,28 @@ static int __init ieee80211_init(void)
     ret = ieee80211_iface_init();
     if (ret)
         goto err_netdev;
-
+           
     // AGGIUNTO
     ret = rc80211_farf_init();      
     if (ret)
         goto err_farf;
-        
-    // AGGIUNTO 
+    
+    // AGGIUNTO
     ret = rc80211_sarf_init();      
     if (ret)
         goto err_sarf;
-        
-    return 0;
     
+    // AGGIUNTO
+    ret = rc80211_indra_init();      
+    if (ret)
+        goto err_indra;
+    
+    return 0;
+ 
+ err_indra:                  // AGGIUNTO
+    rc80211_sarf_exit(); // AGGIUNTO
  err_sarf:                  // AGGIUNTO
-    rc80211_farf_exit();    // AGGIUNTO
+    rc80211_farf_exit(); // AGGIUNTO
  err_farf:                  // AGGIUNTO
     ieee80211_iface_exit(); // AGGIUNTO
  err_netdev:
@@ -1381,12 +1501,14 @@ static void __exit ieee80211_exit(void)
 
 /* ZUUUUUUUUU *****************************/
     raieiitdev_exit();
+    rclogdev_exit();
 /* ZUUUUUUUUU *****************************/
 
     rc80211_minstrel_ht_exit();
     rc80211_minstrel_exit();
     rc80211_farf_exit();        // AGGIUNTO
     rc80211_sarf_exit();        // AGGIUNTO
+    rc80211_indra_exit();        // AGGIUNTO
 
     ieee80211s_stop();
 

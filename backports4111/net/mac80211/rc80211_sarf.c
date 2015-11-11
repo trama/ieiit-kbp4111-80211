@@ -55,6 +55,12 @@
 #include "rate.h"
 #include "rc80211_sarf.h"
 
+/* MICHELE **********************************************/
+
+extern data_rclog_t data_rclog_buf[RCLOG_BUF_DIM];
+extern int rclog_in;
+/* MICHELE **********************************************/
+
 /* convert mac80211 rate index to local array index */
 static inline int
 rix_to_ndx(struct sarf_sta_info *si, int rix)
@@ -158,9 +164,13 @@ sarf_tx_status(void *priv, struct ieee80211_supported_band *sband,
 	
 	// Initialize
 	si->t[t_idx].success = success;
+	data_rclog_buf[rclog_in].success = success;
+	data_rclog_buf[rclog_in].probe = 0;
 	for (i = 0; i < 4; i++) {
 		si->t[t_idx].rate_idx[i] = -1;
 		si->t[t_idx].rate_count[i] = -1;
+		data_rclog_buf[rclog_in].rate_idx[i] = -1;
+		data_rclog_buf[rclog_in].rate_count[i] = -1;
 	}
 	
 	for (i = 0; i < IEEE80211_TX_MAX_RATES; i++) {
@@ -175,6 +185,8 @@ sarf_tx_status(void *priv, struct ieee80211_supported_band *sband,
 		
 		si->t[t_idx].rate_idx[r] = ndx;
 		si->t[t_idx].rate_count[r] = count;
+		data_rclog_buf[rclog_in].rate_idx[r] = ndx;
+		data_rclog_buf[rclog_in].rate_count[r] = count;
 		r++;				
 		
 		if (i != 0) {		
@@ -198,6 +210,7 @@ sarf_tx_status(void *priv, struct ieee80211_supported_band *sband,
 	t_idx = (t_idx + 1) % TX_RECORDED_SARF;
 	si->trasm_index = t_idx;
 	si->trasm_number++;
+	rclog_in = (rclog_in+1)%RCLOG_BUF_DIM;
 	
 	si->success_last = first_succ;
 	sarf_update_rates(sp, si);
@@ -412,7 +425,7 @@ const struct rate_control_ops mac80211_sarf = {
 	.free = sarf_free,
 	.alloc_sta = sarf_alloc_sta,
 	.free_sta = sarf_free_sta,
-#ifdef CONFIG_MAC80211_DEBUGFS
+#ifdef CPTCFG_MAC80211_DEBUGFS
 	.add_sta_debugfs = sarf_add_sta_debugfs,
 	.remove_sta_debugfs = sarf_remove_sta_debugfs,
 #endif

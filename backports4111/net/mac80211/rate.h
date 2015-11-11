@@ -167,32 +167,12 @@ void rate_control_deinitialize(struct ieee80211_local *local);
 /* Rate control algorithms */
 
 // AGGIUNTO
-#ifdef CONFIG_MAC80211_RC_FARF
 int rc80211_farf_init(void);
 void rc80211_farf_exit(void);
-#else
-static inline int rc80211_farf_init(void)
-{
-	return 0;
-}
-static inline void rc80211_farf_exit(void)
-{
-}
-#endif
-
-// AGGIUNTO
-#ifdef CONFIG_MAC80211_RC_SARF
 int rc80211_sarf_init(void);
 void rc80211_sarf_exit(void);
-#else
-static inline int rc80211_sarf_init(void)
-{
-	return 0;
-}
-static inline void rc80211_sarf_exit(void)
-{
-}
-#endif
+int rc80211_indra_init(void);
+void rc80211_indra_exit(void);
 
 #ifdef CPTCFG_MAC80211_RC_MINSTREL
 int rc80211_minstrel_init(void);

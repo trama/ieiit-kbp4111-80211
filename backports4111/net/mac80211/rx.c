@@ -41,6 +41,8 @@ static __inline__ unsigned long long rdtsc(void) {
 
 extern data_raieiit_t data_raieiit_buf[RAIEIIT_BUF_DIM];
 extern int raieiit_in;
+extern signals_memory signals[SIGNALS_MEMORY_SIZE];
+extern int signals_index;
 /* TRAMA **********************/
 
 /*
@@ -2359,6 +2361,7 @@ ieee80211_rx_h_data(struct ieee80211_rx_data *rx)
     struct ieee80211_local *local = rx->local;
     struct net_device *dev = sdata->dev;
     struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)rx->skb->data;
+    
     __le16 fc = hdr->frame_control;
     bool port_control;
     int err;
@@ -2417,8 +2420,8 @@ ieee80211_rx_h_data(struct ieee80211_rx_data *rx)
 
             return RX_QUEUED;
         }
-    }
-
+    }    
+    
     if (rx->sdata->vif.type == NL80211_IFTYPE_AP_VLAN &&
         unlikely(port_control) && sdata->bss) {
         sdata = container_of(sdata->bss, struct ieee80211_sub_if_data,
@@ -3419,27 +3422,63 @@ static bool ieee80211_prepare_and_rx_handle(struct ieee80211_rx_data *rx,
     // TRAMA----------------------
     u8 dst[ETH_ALEN];
     u8 src[ETH_ALEN] __aligned(2);
-    int src2,dst2,n;
+    int n,i,j,record;
     char dbuf[50];
+    bool found = false;
     //char sbuf[50];
     memcpy(dst, ieee80211_get_DA(hdr), ETH_ALEN);
     memcpy(src, ieee80211_get_SA(hdr), ETH_ALEN);
-    dst2 = dst[0] + (dst[1]<<8) + (dst[2]<<16) + (dst[3]<<24);
-    src2 = src[0] + (src[1]<<8) + (src[2]<<16) + (src[3]<<24);
-    n=sprintf(dbuf, "%2x:%2x:%2x:%2x:%2x:%2x -> %2x:%2x:%2x:%2x:%2x:%2x", src[0],src[1],src[2],src[3],src[4],src[5],dst[0],dst[1],dst[2],dst[3],dst[4],dst[5]);
-    //n=sprintf(sbuf, "%2x:%2x:%2x:%2x:%2x:%2x", src[0],src[1],src[2],src[3],src[4],src[5]);
-    //printk("TRAMA: dBm signal power: %d -- addr: %s -> %s \n", status->signal, sbuf, dbuf);
+    n=sprintf(dbuf, "%2x:%2x:%2x:%2x:%2x:%2x -> %2x:%2x:%2x:%2x:%2x:%2x", src[0],src[1],src[2],src[3],src[4],src[5],dst[0],dst[1],dst[2],dst[3],dst[4],dst[5]);    
     {
         char* p_data = (char*)skb->data;
+        char id[8];
+        char expected_id[8] = "IEIIT-RA";
+		int match = 1;
+		int8_t tx_signal, tx_noise;
+		
         p_data=p_data+34;
-
-        //printk("MOD ZU acked $$$$ %d seq_ctrl %d\n\n\n", acked, seqctrl);
-        
-        data_raieiit_buf[raieiit_in].rx_signal = status->signal;      //Copy of the transmission status
-        data_raieiit_buf[raieiit_in].tsc = ieee80211_calculate_rx_timestamp(local, status, skb->len, 0);
-        memcpy(&(data_raieiit_buf[raieiit_in].id),p_data,8);  //Copy of our ID
-        memcpy(&(data_raieiit_buf[raieiit_in].txrxaddr),dbuf,38);  //Copy of TX&RX addresses
-        raieiit_in = (raieiit_in+1)%RAIEIIT_BUF_DIM;
+		memcpy(id,p_data,8);
+		for (i=0; i<8; i++) {
+			if (id[i]!=expected_id[i]) {
+				match = 0;
+				break;
+			}
+		}
+		p_data=p_data+8;
+		tx_signal = (int8_t) p_data[0];
+		tx_noise = (int8_t) p_data[1];
+		if (match==1) {
+			for (record=0; record<signals_index; record++) {
+				found = true;
+				for (j=0; j<ETH_ALEN; j++){
+					if (signals[record].address[j] != src[j]) {
+						found = false;  
+						break;
+					}
+				}
+				if (found) break;
+			}
+			if (!found) {
+				record = signals_index;
+				signals_index = (signals_index + 1) % SIGNALS_MEMORY_SIZE;
+				for (j=0; j<ETH_ALEN; j++)	{
+					signals[record].address[j] = src[j];
+				}	  
+			}
+			signals[record].status = 2;
+			signals[record].rx_signal = status->signal;
+			signals[record].rx_noise = status->noise;
+			signals[record].tx_signal = tx_signal;
+			signals[record].tx_noise = tx_noise;
+			data_raieiit_buf[raieiit_in].rx_signal = status->signal;      //Copy of the transmission status
+			data_raieiit_buf[raieiit_in].rx_noise = status->noise;      //Copy of the transmission status
+			data_raieiit_buf[raieiit_in].tx_signal = tx_signal;      //Copy of the transmission status
+			data_raieiit_buf[raieiit_in].tx_noise = tx_noise;      //Copy of the transmission status
+			data_raieiit_buf[raieiit_in].tsc = ieee80211_calculate_rx_timestamp(local, status, skb->len, 0);
+			memcpy(&(data_raieiit_buf[raieiit_in].id),id,8);  //Copy of our ID
+			memcpy(&(data_raieiit_buf[raieiit_in].txrxaddr),dbuf,38);  //Copy of TX&RX addresses
+			raieiit_in = (raieiit_in+1)%RAIEIIT_BUF_DIM;
+		}
     }
     // TRAMA----------------------
     

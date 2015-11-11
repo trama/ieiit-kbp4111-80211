@@ -51,11 +51,14 @@ mac80211-$(CONFIG_PM) += pm.o
 
 CFLAGS_trace.o := -I$(src)
 
-rc80211_farf-y := rc80211_farf.o
-rc80211_farf-$(CONFIG_MAC80211_DEBUGFS) += rc80211_farf_debugfs.o
+rc80211_indra-y := rc80211_indra.o
+rc80211_indra-$(CPTCFG_MAC80211_DEBUGFS) += rc80211_indra_debugfs.o
 
 rc80211_sarf-y := rc80211_sarf.o
-rc80211_sarf-$(CONFIG_MAC80211_DEBUGFS) += rc80211_sarf_debugfs.o
+rc80211_sarf-$(CPTCFG_MAC80211_DEBUGFS) += rc80211_sarf_debugfs.o
+
+rc80211_farf-y := rc80211_farf.o
+rc80211_farf-$(CPTCFG_MAC80211_DEBUGFS) += rc80211_farf_debugfs.o
 
 rc80211_minstrel-y := rc80211_minstrel.o
 rc80211_minstrel-$(CPTCFG_MAC80211_DEBUGFS) += rc80211_minstrel_debugfs.o
@@ -63,8 +66,9 @@ rc80211_minstrel-$(CPTCFG_MAC80211_DEBUGFS) += rc80211_minstrel_debugfs.o
 rc80211_minstrel_ht-y := rc80211_minstrel_ht.o
 rc80211_minstrel_ht-$(CPTCFG_MAC80211_DEBUGFS) += rc80211_minstrel_ht_debugfs.o
 
-mac80211-$(CONFIG_MAC80211_RC_FARF) += $(rc80211_farf-y)
-mac80211-$(CONFIG_MAC80211_RC_SARF) += $(rc80211_sarf-y)
+mac80211-$(CPTCFG_MAC80211_RC_INDRA) += $(rc80211_indra-y)
+mac80211-$(CPTCFG_MAC80211_RC_SARF) += $(rc80211_sarf-y)
+mac80211-$(CPTCFG_MAC80211_RC_FARF) += $(rc80211_farf-y)
 mac80211-$(CPTCFG_MAC80211_RC_MINSTREL) += $(rc80211_minstrel-y)
 mac80211-$(CPTCFG_MAC80211_RC_MINSTREL_HT) += $(rc80211_minstrel_ht-y)
 

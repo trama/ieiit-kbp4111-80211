@@ -49,7 +49,7 @@ struct farf_sta_info {
 	struct farf_rate *r;
 	struct farf_tx t[TX_RECORDED_FARF];		
 	
-#ifdef CONFIG_MAC80211_DEBUGFS
+#ifdef CPTCFG_MAC80211_DEBUGFS
 	struct dentry *dbg_stats;
 #endif
 };

@@ -267,6 +267,7 @@ void ath9k_cmn_process_rssi(struct ath_common *common,
 		ah->stats.avgbrssi = rssi;
 	}
 
+	rxs->noise = ah->noise;
 	rxs->signal = ah->noise + rx_stats->rs_rssi;
 }
 EXPORT_SYMBOL(ath9k_cmn_process_rssi);

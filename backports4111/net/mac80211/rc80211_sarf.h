@@ -51,7 +51,7 @@ struct sarf_sta_info {
 	struct sarf_rate *r;
 	struct sarf_tx t[TX_RECORDED_SARF];		
 	
-#ifdef CONFIG_MAC80211_DEBUGFS
+#ifdef CPTCFG_MAC80211_DEBUGFS
 	struct dentry *dbg_stats;
 #endif
 };

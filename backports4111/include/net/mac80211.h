@@ -29,10 +29,34 @@ typedef struct {
     int64_t tsc;
     char id[8];
     s8 rx_signal;
+    s8 rx_noise;
+    s8 tx_signal;
+    s8 tx_noise;
     char txrxaddr[38];
 } data_raieiit_t;
 /* TRAMA ***************************/
 
+/* MICHELE**********************************/
+#define RCLOG_BUF_DIM 50
+#define SIGNALS_MEMORY_SIZE 10
+
+typedef struct {		
+	int rate_idx [4];
+	int rate_count [4];
+	int success;
+	int probe;
+} data_rclog_t;
+
+typedef struct {		
+	u8 address[ETH_ALEN];
+	u8 rx_signal;
+	u8 rx_noise;
+	u8 tx_signal;
+	u8 tx_noise;
+	u8 status;		// 0: not waiting for packet, 1: waiting for packet, 2: packet arrived
+} signals_memory;
+
+/* MICHELE**********************************/
 
 /**
  * DOC: Introduction
@@ -757,7 +781,7 @@ enum mac80211_rate_control_flags {
 #define IEEE80211_TX_MAX_RATES  4
 
 /* maximum number of rate table entries */
-#define IEEE80211_TX_RATE_TABLE_SIZE    4
+#define IEEE80211_TX_RATE_TABLE_SIZE   4
 
 /**
  * struct ieee80211_tx_rate - rate selection/status
@@ -1111,6 +1135,7 @@ struct ieee80211_rx_status {
     u8 band;
     u8 antenna;
     s8 signal;
+    s8 noise;
     u8 chains;
     s8 chain_signal[IEEE80211_MAX_CHAINS];
     u8 ampdu_delimiter_crc;

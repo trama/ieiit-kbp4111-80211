@@ -24,7 +24,6 @@
 /* number of transmissions to record*/
 #define TX_RECORDED 100
 
-
 /*
  * Perform EWMA (Exponentially Weighted Moving Average) calculation
  */

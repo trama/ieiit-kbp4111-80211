@@ -21,19 +21,23 @@ if MAC80211 != n
 config MAC80211_HAS_RC
 	bool
 
-config MAC80211_RC_FARF
-	bool "FARF rate control algorithm" if EXPERT
+config MAC80211_RC_INDRA
+	bool "INDRA rate control algorithm" if EXPERT
 	select MAC80211_HAS_RC
 	---help---
-	  This option enables the 'FARF' TX rate control algorithm for
-	  mac80211 
+	  This option enables the 'INDRA' TX rate control algorithm for mac80211
 
 config MAC80211_RC_SARF
 	bool "SARF rate control algorithm" if EXPERT
 	select MAC80211_HAS_RC
 	---help---
-	  This option enables the 'SARF' TX rate control algorithm for
-	  mac80211 
+	  This option enables the 'SARF' TX rate control algorithm for mac80211
+
+config MAC80211_RC_FARF
+	bool "FARF rate control algorithm" if EXPERT
+	select MAC80211_HAS_RC
+	---help---
+	  This option enables the 'FARF' TX rate control algorithm for mac80211
 
 config MAC80211_RC_MINSTREL
 	bool "Minstrel" if EXPERT
@@ -66,11 +70,11 @@ choice
 	  overridden through the ieee80211_default_rc_algo module
 	  parameter if different algorithms are available.
 
-config MAC80211_RC_DEFAULT_FARF
-	bool "FARF rate control algorithm"
-	depends on MAC80211_RC_FARF
+config MAC80211_RC_DEFAULT_INDRA
+	bool "INDRA rate control algorithm"
+	depends on MAC80211_RC_INDRA
 	---help---
-	  Select the FARF rate control as the
+	  Select the INDRA rate control as the
 	  default rate control algorithm. 
 
 config MAC80211_RC_DEFAULT_SARF
@@ -78,6 +82,13 @@ config MAC80211_RC_DEFAULT_SARF
 	depends on MAC80211_RC_SARF
 	---help---
 	  Select the SARF rate control as the
+	  default rate control algorithm. 
+
+config MAC80211_RC_DEFAULT_FARF
+	bool "FARF rate control algorithm"
+	depends on MAC80211_RC_FARF
+	---help---
+	  Select the FARF rate control as the
 	  default rate control algorithm. 
 	  
 config MAC80211_RC_DEFAULT_MINSTREL
@@ -95,6 +106,7 @@ config MAC80211_RC_DEFAULT
 	default "minstrel" if MAC80211_RC_DEFAULT_MINSTREL
 	default "farf" if MAC80211_RC_DEFAULT_FARF
 	default "sarf" if MAC80211_RC_DEFAULT_SARF
+	default "indra" if MAC80211_RC_DEFAULT_INDRA
 	default ""
 
 endif

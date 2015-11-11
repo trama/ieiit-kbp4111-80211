@@ -58,6 +58,12 @@
 #define SAMPLE_TBL(_mi, _idx, _col) \
 		_mi->sample_table[(_idx * SAMPLE_COLUMNS) + _col]
 
+/* MICHELE **********************************************/
+
+extern data_rclog_t data_rclog_buf[RCLOG_BUF_DIM];
+extern int rclog_in;
+/* MICHELE **********************************************/
+
 /* convert mac80211 rate index to local array index */
 static inline int
 rix_to_ndx(struct minstrel_sta_info *mi, int rix)
@@ -285,9 +291,13 @@ minstrel_tx_status(void *priv, struct ieee80211_supported_band *sband,
 	// AGGIUNTO
 	mi->t[t_idx].success = success;
 	mi->t[t_idx].probe = mi->isSampling;
+	data_rclog_buf[rclog_in].success = success;
+	data_rclog_buf[rclog_in].probe = mi->isSampling;  
 	for (i = 0; i < 4; i++) {
 		mi->t[t_idx].rate_idx[i] = -1;
 		mi->t[t_idx].rate_count[i] = -1;
+		data_rclog_buf[rclog_in].rate_idx[i] = -1;
+		data_rclog_buf[rclog_in].rate_count[i] = -1;
 	}
 
 	for (i = 0; i < IEEE80211_TX_MAX_RATES; i++) {
@@ -304,6 +314,8 @@ minstrel_tx_status(void *priv, struct ieee80211_supported_band *sband,
 		// AGGIUNTO
 		mi->t[t_idx].rate_idx[r] = ndx;
 		mi->t[t_idx].rate_count[r] = count;
+		data_rclog_buf[rclog_in].rate_idx[r] = ndx;
+		data_rclog_buf[rclog_in].rate_count[r] = count;
 		r++;
 		
 		//retry_count += ar[i].count;				// VECCHIO
@@ -316,6 +328,7 @@ minstrel_tx_status(void *priv, struct ieee80211_supported_band *sband,
 	t_idx = (t_idx + 1) % TX_RECORDED;
 	mi->trasm_index = t_idx;
 	mi->trasm_number++;
+	rclog_in = (rclog_in+1)%RCLOG_BUF_DIM;
 	
 	if ((info->flags & IEEE80211_TX_CTL_RATE_CTRL_PROBE) && (i >= 0))
 		mi->sample_packets++;
@@ -373,7 +386,7 @@ minstrel_get_rate(void *priv, struct ieee80211_sta *sta,
 	bool prev_sample;
 	int delta;
 	int sampling_ratio;
-
+	
 	mi->isSampling = false; // AGGIUNTO
 
 	/* management/no-ack frames do not use rate control */
