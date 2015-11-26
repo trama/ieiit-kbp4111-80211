@@ -169,10 +169,20 @@ void rate_control_deinitialize(struct ieee80211_local *local);
 // AGGIUNTO
 int rc80211_farf_init(void);
 void rc80211_farf_exit(void);
+int rc80211_farf_ht_init(void);
+void rc80211_farf_ht_exit(void);
+int rc80211_farf2_init(void);
+void rc80211_farf2_exit(void);
 int rc80211_sarf_init(void);
 void rc80211_sarf_exit(void);
+int rc80211_sarf_ht_init(void);
+void rc80211_sarf_ht_exit(void);
+int rc80211_sarf2_init(void);
+void rc80211_sarf2_exit(void);
 int rc80211_indra_init(void);
 void rc80211_indra_exit(void);
+int rc80211_indra_ht_init(void);
+void rc80211_indra_ht_exit(void);
 
 #ifdef CPTCFG_MAC80211_RC_MINSTREL
 int rc80211_minstrel_init(void);
@@ -199,6 +209,7 @@ static inline void rc80211_minstrel_ht_exit(void)
 {
 }
 #endif
-
+int rc80211_minstrel2_init(void);
+void rc80211_minstrel2_exit(void);
 
 #endif /* IEEE80211_RATE_H */

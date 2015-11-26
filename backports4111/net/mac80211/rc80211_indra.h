@@ -10,10 +10,10 @@
 #ifndef __RC_INDRA_H
 #define __RC_INDRA_H
 
-#define ALPHA_INDRA 75	/* EWMA parameter */
-#define PER_TH_INDRA 99	/* Threshold on PER for computation of SNR when packet is lost */
+#define ALPHA_INDRA 99	/* EWMA parameter */
+#define PER_TH_INDRA 990	/* Threshold on PER for computation of SNR when packet is lost */
 #define SNR_RANGE 30 /* Values of SNR counted on the map */ 
-#define SNR_MIN 5 /* Minimum value of SNR counted on the map (it has to be intended as negative) */ 
+#define SNR_MIN 7 /* Minimum value of SNR counted on the map */ 
 
 #define INDRA_SCALE  16
 #define INDRA_FRAC(val, div) (((val) << INDRA_SCALE) / div)
@@ -36,8 +36,16 @@ struct indra_sta_info {
 	unsigned int lowest_rix;
 	int last_snr;
 
+	u32 flags;
+	u32 tx_flags;
+	
+	unsigned long last_stats_update;
+
 	int n_rates;			
 	struct indra_rate *r;	
+	
+	unsigned int *optimal_indexes;
+	unsigned int **optimal_rates;
 	
 #ifdef CPTCFG_MAC80211_DEBUGFS
 	struct dentry *dbg_stats;
@@ -57,6 +65,8 @@ struct indra_priv {
 	struct dentry *dbg_st_deadline;
 	u32 ref_payload_size;		
 	struct dentry *dbg_ref_payload_size;
+	u32 update_interval;		
+	struct dentry *dbg_update_interval;
 #endif
 	
 };

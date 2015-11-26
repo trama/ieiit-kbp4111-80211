@@ -258,6 +258,117 @@ static ssize_t dev_write_rclog(struct file *filep, const char *buffer, size_t le
 }
 /* MICHELE ***********************************/
 
+/* MICHELE **********************************************************/
+
+#define  OPTL_DEVICE_NAME "optlogdev"    ///< The device will appear at /dev/ractrlchar using this value
+#define  OPTL_CLASS_NAME  "optlog"
+
+static int    optlMajorNumber;                  ///< Stores the device number -- determined automatically
+static int    optlNumberOpens = 0;              ///< Counts the number of times the device is opened
+static struct class*  optlogdevClass  = NULL; ///< The device-driver class struct pointer
+static struct device* optlogdevDevice = NULL;
+static int     dev_open_optlog(struct inode *, struct file *);
+static int     dev_release_optlog(struct inode *, struct file *);
+static ssize_t dev_read_optlog(struct file *, char *, size_t, loff_t *);
+static ssize_t dev_write_optlog(struct file *, const char *, size_t, loff_t *);
+static int optlogdev_init(void);
+static void optlogdev_exit(void);
+data_optlog_t data_optlog_buf[OPTLOG_BUF_DIM];
+int optlog_in, optlog_out;
+
+static struct file_operations optlFops = {
+   .open = dev_open_optlog,
+   .read = dev_read_optlog,
+   .write = dev_write_optlog,
+   .release = dev_release_optlog,
+};
+
+
+static int dev_open_optlog(struct inode *inodep, struct file *filep) {
+    optlNumberOpens++;
+    printk(KERN_INFO "optlog: Device has been opened %d time(s)\n", optlNumberOpens);
+    return 0;
+}
+
+static int dev_release_optlog(struct inode *inodep, struct file *filep) {
+    printk(KERN_INFO "optlogdev: Device successfully closed\n");
+    return 0;
+}
+
+static int optlogdev_init(void) {
+    printk(KERN_INFO "optlogdev: Initializing the rclogChar\n");
+
+    optlMajorNumber = register_chrdev(0, OPTL_DEVICE_NAME, &optlFops);
+    if (optlMajorNumber<0){
+      printk(KERN_ALERT "optlogdev failed to register a major number\n");
+      return optlMajorNumber;
+    }
+    printk(KERN_INFO "optlogdev: registered correctly with major number %d\n", optlMajorNumber);
+
+    optlogdevClass = class_create(THIS_MODULE, OPTL_CLASS_NAME);
+    if (IS_ERR(optlogdevClass)){                // Check for error and clean up if there is
+      unregister_chrdev(optlMajorNumber, OPTL_DEVICE_NAME);
+      printk(KERN_ALERT "Failed to register device class\n");
+      return PTR_ERR(optlogdevClass);          // Correct way to return an error on a pointer
+    }
+    printk(KERN_INFO "optlogDev: device class registered correctly\n");
+
+    // Register the device driver
+    optlogdevDevice = device_create(optlogdevClass, NULL, MKDEV(optlMajorNumber, 0), NULL, OPTL_DEVICE_NAME);
+    if (IS_ERR(optlogdevDevice)){               // Clean up if there is an error
+      class_destroy(optlogdevClass);           // Repeated code but the alternative is goto statements
+      unregister_chrdev(optlMajorNumber, DEVICE_NAME);
+      printk(KERN_ALERT "Failed to create the device\n");
+      return PTR_ERR(optlogdevDevice);
+    }
+    printk(KERN_INFO "optlogDev: device class created correctly\n"); // Made it! device was initialized
+
+    optlog_in = 0;
+    optlog_out = 0;
+    return 0;
+}
+
+static void optlogdev_exit(void) {
+    device_destroy(optlogdevClass, MKDEV(optlMajorNumber, 0));     // remove the device
+    class_unregister(optlogdevClass);                          // unregister the device class
+    class_destroy(optlogdevClass);                             // remove the device class
+    unregister_chrdev(optlMajorNumber, OPTL_DEVICE_NAME);             // unregister the major number
+    printk(KERN_INFO "optlogDev: Goodbye from the sched!\n");
+
+}
+
+static ssize_t dev_read_optlog(struct file *filep, char *buffer, size_t len, loff_t *offset) {
+
+    int error_count = 0;
+    data_optlog_t data_optlog;
+    // copy_to_user has the format ( * to, *from, size) and returns 0 on success
+
+    if(optlog_in == optlog_out)
+        return -EAGAIN;
+
+    data_optlog = data_optlog_buf[optlog_out];
+    optlog_out = (optlog_out+1) % OPTLOG_BUF_DIM;
+
+    error_count = copy_to_user(buffer, (char*)(&data_optlog), sizeof(data_optlog));
+
+    if (error_count==0){            // if true then have success
+        //printk(KERN_INFO "schedChar: Sent %d characters to the user\n", sizeof(data_sched));
+        return (0);  // clear the position to the start and return 0
+    }
+    else {
+        printk(KERN_INFO "optlogDev: Failed to send %d characters to the user\n", error_count);
+        return -EFAULT;              // Failed -- return a bad address message (i.e. -14)
+    }
+
+    return 0;
+}
+
+static ssize_t dev_write_optlog(struct file *filep, const char *buffer, size_t len, loff_t *offset){
+    return 0;
+}
+/* MICHELE ***********************************/
+
+
 void ieee80211_configure_filter(struct ieee80211_local *local)
 {
     u64 mc;
@@ -1445,6 +1556,7 @@ static int __init ieee80211_init(void)
 /* ZUUUUUUUUU *****************************/
     raieiitdev_init();
     rclogdev_init();
+    optlogdev_init();
 	signals_index = 0;
 
 /* ZUUUUUUUUU *****************************/
@@ -1461,6 +1573,10 @@ static int __init ieee80211_init(void)
     if (ret)
         goto err_minstrel;
 
+	ret = rc80211_minstrel2_init();
+    if (ret)
+        goto err_minstrel2;
+
     ret = ieee80211_iface_init();
     if (ret)
         goto err_netdev;
@@ -1469,27 +1585,64 @@ static int __init ieee80211_init(void)
     ret = rc80211_farf_init();      
     if (ret)
         goto err_farf;
+        
+    // AGGIUNTO
+    ret = rc80211_farf_ht_init();      
+    if (ret)
+        goto err_farf_ht;
+        
+    // AGGIUNTO
+    ret = rc80211_farf2_init();      
+    if (ret)
+        goto err_farf2;
     
     // AGGIUNTO
     ret = rc80211_sarf_init();      
     if (ret)
         goto err_sarf;
+        
+    // AGGIUNTO
+    ret = rc80211_sarf_ht_init();      
+    if (ret)
+        goto err_sarf_ht;
+        
+    // AGGIUNTO
+    ret = rc80211_sarf2_init();      
+    if (ret)
+        goto err_sarf2;
     
     // AGGIUNTO
     ret = rc80211_indra_init();      
     if (ret)
         goto err_indra;
+        
+    // AGGIUNTO
+    ret = rc80211_indra_ht_init();      
+    if (ret)
+        goto err_indra_ht;
     
     return 0;
- 
+    
+ err_indra_ht:               // AGGIUNTO
+    rc80211_indra_exit(); // AGGIUNTO
  err_indra:                  // AGGIUNTO
-    rc80211_sarf_exit(); // AGGIUNTO
- err_sarf:                  // AGGIUNTO
+    rc80211_sarf2_exit(); // AGGIUNTO
+ err_sarf2:				 // AGGIUNTO
+	rc80211_sarf_ht_exit(); // AGGIUNTO
+ err_sarf_ht:				 // AGGIUNTO
+	rc80211_sarf_exit(); // AGGIUNTO
+ err_sarf:				 // AGGIUNTO
+	rc80211_farf2_exit(); // AGGIUNTO
+ err_farf2:                  // AGGIUNTO
+    rc80211_farf_ht_exit(); // AGGIUNTO
+ err_farf_ht:                  // AGGIUNTO
     rc80211_farf_exit(); // AGGIUNTO
  err_farf:                  // AGGIUNTO
     ieee80211_iface_exit(); // AGGIUNTO
  err_netdev:
-    rc80211_minstrel_ht_exit();
+    rc80211_minstrel2_exit();
+ err_minstrel2:
+    rc80211_minstrel_ht_exit();   
  err_minstrel:
     rc80211_minstrel_exit();
 
@@ -1502,13 +1655,20 @@ static void __exit ieee80211_exit(void)
 /* ZUUUUUUUUU *****************************/
     raieiitdev_exit();
     rclogdev_exit();
+    optlogdev_exit();
 /* ZUUUUUUUUU *****************************/
 
     rc80211_minstrel_ht_exit();
     rc80211_minstrel_exit();
+    rc80211_minstrel2_exit();
     rc80211_farf_exit();        // AGGIUNTO
+    rc80211_farf_ht_exit();    // AGGIUNTO
+    rc80211_farf2_exit();    // AGGIUNTO
     rc80211_sarf_exit();        // AGGIUNTO
-    rc80211_indra_exit();        // AGGIUNTO
+    rc80211_sarf_ht_exit();       // AGGIUNTO
+    rc80211_sarf2_exit();       // AGGIUNTO
+    rc80211_indra_ht_exit();    // AGGIUNTO
+    rc80211_indra_exit();       // AGGIUNTO
 
     ieee80211s_stop();
 

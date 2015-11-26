@@ -20,6 +20,13 @@
 
 #define AR9285_CLCAL_REDO_THRESH    1
 
+///* get rtdsc register value */
+//static __inline__ unsigned long long rdtsc(void) {
+    //unsigned hi, lo;
+    //__asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
+    //return ( (unsigned long long)lo)|( ((unsigned long long)hi)<<32 );
+//}
+
 enum ar9002_cal_types {
 	ADC_GAIN_CAL = BIT(0),
 	ADC_DC_CAL = BIT(1),
@@ -661,19 +668,38 @@ static int ar9002_hw_calibrate(struct ath_hw *ah, struct ath9k_channel *chan,
 {
 	struct ath9k_cal_list *currCal = ah->cal_list_curr;
 	bool nfcal, nfcal_pending = false, percal_pending;
+	//bool finished = false;
 	int ret;
+	//unsigned long long start, stop;
 
 	nfcal = !!(REG_READ(ah, AR_PHY_AGC_CONTROL) & AR_PHY_AGC_CONTROL_NF);
+	
+	//// AGGIUNTO
+	//if (longcal) {
+		////start = rdtsc();
+		////printk("MICHELE: start_nfcal\n");
+		//ath9k_hw_start_nfcal(ah, false);		
+	//}
+	//else {
+		////REG_CLR_BIT(ah, AR_PHY_AGC_CONTROL, AR_PHY_AGC_CONTROL_NF);
+		//ath9k_hw_getnf(ah, chan);
+		////while (!finished) {
+			////finished = ath9k_hw_getnf(ah, chan);
+		////}
+		////stop = rdtsc();
+		////printk("MICHELE: end getnf\n");	
+	//}
+	
 	if (ah->caldata)
 		nfcal_pending = test_bit(NFCAL_PENDING, &ah->caldata->cal_flags);
 
 	percal_pending = (currCal &&
 			  (currCal->calState == CAL_RUNNING ||
 			   currCal->calState == CAL_WAITING));
-
 	if (percal_pending && !nfcal) {
-		if (!ar9002_hw_per_calibration(ah, chan, rxchainmask, currCal))
+		if (!ar9002_hw_per_calibration(ah, chan, rxchainmask, currCal)) {
 			return 0;
+		}
 
 		ah->cal_list_curr = currCal = currCal->calNext;
 		if (currCal->calState == CAL_WAITING) {
@@ -681,9 +707,11 @@ static int ar9002_hw_calibrate(struct ath_hw *ah, struct ath9k_channel *chan,
 			return 0;
 		}
 	}
-
+	
+	// RIMOSSO
 	/* Do NF cal only at longer intervals */
 	if (longcal || nfcal_pending) {
+		//printk("MICHELE: ar9002_calibrate, nfcal\n");
 		/*
 		 * Get the value from the previous NF cal and update
 		 * history buffer.
@@ -701,6 +729,7 @@ static int ar9002_hw_calibrate(struct ath_hw *ah, struct ath9k_channel *chan,
 		}
 
 		if (longcal) {
+			//printk("MICHELE: start_nfcal from hw_calibrate\n");
 			ath9k_hw_start_nfcal(ah, false);
 			/* Do periodic PAOffset Cal */
 			ar9002_hw_pa_cal(ah, false);
@@ -856,6 +885,7 @@ static bool ar9002_hw_init_cal(struct ath_hw *ah, struct ath9k_channel *chan)
 	/* Do PA Calibration */
 	ar9002_hw_pa_cal(ah, true);
 	ath9k_hw_loadnf(ah, chan);
+	//printk("MICHELE: start_nfcal from hw_init_cal\n");
 	ath9k_hw_start_nfcal(ah, true);
 
 	if (ah->caldata)

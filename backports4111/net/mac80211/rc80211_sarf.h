@@ -43,6 +43,9 @@ struct sarf_sta_info {
 	unsigned int lowest_rix;
 	u8 curr_rate;
 	
+	u32 flags;
+	u32 tx_flags;
+	
 	bool success_last;
 
 	int n_rates;

@@ -264,9 +264,12 @@ void ath9k_cmn_process_rssi(struct ath_common *common,
 		if (rssi < 0)
 			rssi = 0;
 
+
+		//printk("MICHELE: rx_stats->ismybeacon, common->last_rssi=%i\n",common->last_rssi);
 		ah->stats.avgbrssi = rssi;
 	}
 
+	//printk("MICHELE: process_rssi, rssi=%i\n",rx_stats->rs_rssi);
 	rxs->noise = ah->noise;
 	rxs->signal = ah->noise + rx_stats->rs_rssi;
 }

@@ -17,6 +17,17 @@
 #include "rc80211_minstrel.h"
 #include "rc80211_minstrel_ht.h"
 
+/* optimization logging */
+extern data_optlog_t data_optlog_buf[OPTLOG_BUF_DIM];
+extern int optlog_in;
+
+/* get rtdsc register value */
+static __inline__ unsigned long long rdtsc(void) {
+    unsigned hi, lo;
+    __asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
+    return ( (unsigned long long)lo)|( ((unsigned long long)hi)<<32 );
+}
+
 #define AVG_AMPDU_SIZE	16
 #define AVG_PKT_SIZE	1200
 
@@ -46,7 +57,6 @@
  */
 #define GROUP_IDX(_streams, _sgi, _ht40)	\
 	MINSTREL_HT_GROUP_0 +			\
-	MINSTREL_MAX_STREAMS * 2 * _ht40 +	\
 	MINSTREL_MAX_STREAMS * _sgi +	\
 	_streams - 1
 
@@ -152,69 +162,7 @@ MODULE_PARM_DESC(minstrel_vht_only,
  * BW -> SGI -> #streams
  */
 const struct mcs_group minstrel_mcs_groups[] = {
-	MCS_GROUP(1, 0, BW_20),
-	MCS_GROUP(2, 0, BW_20),
-#if MINSTREL_MAX_STREAMS >= 3
-	MCS_GROUP(3, 0, BW_20),
-#endif
-
-	MCS_GROUP(1, 1, BW_20),
-	MCS_GROUP(2, 1, BW_20),
-#if MINSTREL_MAX_STREAMS >= 3
-	MCS_GROUP(3, 1, BW_20),
-#endif
-
 	MCS_GROUP(1, 0, BW_40),
-	MCS_GROUP(2, 0, BW_40),
-#if MINSTREL_MAX_STREAMS >= 3
-	MCS_GROUP(3, 0, BW_40),
-#endif
-
-	MCS_GROUP(1, 1, BW_40),
-	MCS_GROUP(2, 1, BW_40),
-#if MINSTREL_MAX_STREAMS >= 3
-	MCS_GROUP(3, 1, BW_40),
-#endif
-
-	CCK_GROUP,
-
-#ifdef CPTCFG_MAC80211_RC_MINSTREL_VHT
-	VHT_GROUP(1, 0, BW_20),
-	VHT_GROUP(2, 0, BW_20),
-#if MINSTREL_MAX_STREAMS >= 3
-	VHT_GROUP(3, 0, BW_20),
-#endif
-
-	VHT_GROUP(1, 1, BW_20),
-	VHT_GROUP(2, 1, BW_20),
-#if MINSTREL_MAX_STREAMS >= 3
-	VHT_GROUP(3, 1, BW_20),
-#endif
-
-	VHT_GROUP(1, 0, BW_40),
-	VHT_GROUP(2, 0, BW_40),
-#if MINSTREL_MAX_STREAMS >= 3
-	VHT_GROUP(3, 0, BW_40),
-#endif
-
-	VHT_GROUP(1, 1, BW_40),
-	VHT_GROUP(2, 1, BW_40),
-#if MINSTREL_MAX_STREAMS >= 3
-	VHT_GROUP(3, 1, BW_40),
-#endif
-
-	VHT_GROUP(1, 0, BW_80),
-	VHT_GROUP(2, 0, BW_80),
-#if MINSTREL_MAX_STREAMS >= 3
-	VHT_GROUP(3, 0, BW_80),
-#endif
-
-	VHT_GROUP(1, 1, BW_80),
-	VHT_GROUP(2, 1, BW_80),
-#if MINSTREL_MAX_STREAMS >= 3
-	VHT_GROUP(3, 1, BW_80),
-#endif
-#endif
 };
 
 static u8 sample_table[SAMPLE_COLUMNS][MCS_GROUP_RATES] __read_mostly;
@@ -1011,6 +959,10 @@ minstrel_ht_get_rate(void *priv, struct ieee80211_sta *sta, void *priv_sta,
 
 	if (!msp->is_ht)
 		return mac80211_minstrel.get_rate(priv, sta, &msp->legacy, txrc);
+		
+	/* log start time */
+	data_optlog_buf[optlog_in].start = rdtsc();
+	data_optlog_buf[optlog_in].optimized = 0;
 
 	if (!(info->flags & IEEE80211_TX_CTL_AMPDU) &&
 	    mi->max_prob_rate / MCS_GROUP_RATES != MINSTREL_CCK_GROUP)
@@ -1039,8 +991,11 @@ minstrel_ht_get_rate(void *priv, struct ieee80211_sta *sta, void *priv_sta,
 		mi->sample_packets = 0;
 	}
 
-	if (sample_idx < 0)
+	if (sample_idx < 0) {
+		data_optlog_buf[optlog_in].stop = rdtsc();
+		optlog_in = (optlog_in+1)%OPTLOG_BUF_DIM;
 		return;
+	}
 
 	sample_group = &minstrel_mcs_groups[sample_idx / MCS_GROUP_RATES];
 	info->flags |= IEEE80211_TX_CTL_RATE_CTRL_PROBE;
@@ -1058,6 +1013,10 @@ minstrel_ht_get_rate(void *priv, struct ieee80211_sta *sta, void *priv_sta,
 	}
 
 	rate->flags = sample_group->flags;
+	
+	/* log final time */
+	data_optlog_buf[optlog_in].stop = rdtsc();
+	optlog_in = (optlog_in+1)%OPTLOG_BUF_DIM;
 }
 
 static void
@@ -1270,6 +1229,7 @@ minstrel_ht_alloc_sta(void *priv, struct ieee80211_sta *sta, gfp_t gfp)
 		if (sband && sband->n_bitrates > max_rates)
 			max_rates = sband->n_bitrates;
 	}
+	
 
 	msp = kzalloc(sizeof(*msp), gfp);
 	if (!msp)

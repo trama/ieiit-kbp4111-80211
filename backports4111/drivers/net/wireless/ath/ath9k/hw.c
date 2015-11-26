@@ -1958,6 +1958,7 @@ int ath9k_hw_reset(struct ath_hw *ah, struct ath9k_channel *chan,
     }
 
 
+	//printk("MICHELE: hw_reset\n");
     // TRAMA : check if csma is disabled and maintain disabled
     
     regval = REG_READ(ah, AR_DIAG_SW);

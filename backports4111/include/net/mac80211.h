@@ -38,6 +38,7 @@ typedef struct {
 
 /* MICHELE**********************************/
 #define RCLOG_BUF_DIM 50
+#define OPTLOG_BUF_DIM 50
 #define SIGNALS_MEMORY_SIZE 10
 
 typedef struct {		
@@ -48,12 +49,18 @@ typedef struct {
 } data_rclog_t;
 
 typedef struct {		
+	unsigned long long start;
+	unsigned long long stop;
+	int optimized;
+} data_optlog_t;
+
+typedef struct {		
 	u8 address[ETH_ALEN];
-	u8 rx_signal;
-	u8 rx_noise;
-	u8 tx_signal;
-	u8 tx_noise;
-	u8 status;		// 0: not waiting for packet, 1: waiting for packet, 2: packet arrived
+	s8 rx_signal;
+	s8 rx_noise;
+	s8 tx_signal;
+	s8 tx_noise;
+	s8 status;		// 0: not waiting for packet, 1: waiting for packet, 2: packet arrived
 } signals_memory;
 
 /* MICHELE**********************************/

@@ -3429,6 +3429,7 @@ static bool ieee80211_prepare_and_rx_handle(struct ieee80211_rx_data *rx,
     memcpy(dst, ieee80211_get_DA(hdr), ETH_ALEN);
     memcpy(src, ieee80211_get_SA(hdr), ETH_ALEN);
     n=sprintf(dbuf, "%2x:%2x:%2x:%2x:%2x:%2x -> %2x:%2x:%2x:%2x:%2x:%2x", src[0],src[1],src[2],src[3],src[4],src[5],dst[0],dst[1],dst[2],dst[3],dst[4],dst[5]);    
+    //printk("MICHELE: %2x:%2x:%2x:%2x:%2x:%2x -> %2x:%2x:%2x:%2x:%2x:%2x\n",src[0],src[1],src[2],src[3],src[4],src[5],dst[0],dst[1],dst[2],dst[3],dst[4],dst[5]);
     {
         char* p_data = (char*)skb->data;
         char id[8];

@@ -25,19 +25,48 @@ config MAC80211_RC_INDRA
 	bool "INDRA rate control algorithm" if EXPERT
 	select MAC80211_HAS_RC
 	---help---
-	  This option enables the 'INDRA' TX rate control algorithm for mac80211
+	  This option enables the 'indra' TX rate control algorithm for mac80211
+
+config MAC80211_RC_INDRA_HT
+	bool "INDRA 802.11n support" if EXPERT
+	depends on MAC80211_RC_INDRA
+	---help---
+	  This option enables the 'indra_ht' TX rate control algorithm
 
 config MAC80211_RC_SARF
 	bool "SARF rate control algorithm" if EXPERT
 	select MAC80211_HAS_RC
 	---help---
-	  This option enables the 'SARF' TX rate control algorithm for mac80211
+	  This option enables the 'sarf' TX rate control algorithm for mac80211
+	  
+config MAC80211_RC_SARF_HT
+	bool "SARF 802.11n support" if EXPERT
+	depends on MAC80211_RC_SARF
+	---help---
+	  This option enables the 'sarf_ht' TX rate control algorithm
+	  
+config MAC80211_RC_SARF2
+	bool "SARF2 rate control algorithm" if EXPERT
+	select MAC80211_HAS_RC
+	---help---
+	  This option enables the 'sarf2' TX rate control algorithm for mac80211
 
 config MAC80211_RC_FARF
 	bool "FARF rate control algorithm" if EXPERT
 	select MAC80211_HAS_RC
 	---help---
-	  This option enables the 'FARF' TX rate control algorithm for mac80211
+	  This option enables the 'farf' TX rate control algorithm for mac80211
+	  
+config MAC80211_RC_FARF_HT
+	bool "FARF 802.11n support" if EXPERT
+	depends on MAC80211_RC_FARF
+	---help---
+	  This option enables the 'farf_ht' TX rate control algorithm
+	  
+config MAC80211_RC_FARF2
+	bool "FARF2 rate control algorithm" if EXPERT
+	---help---
+	  This option enables the 'farf2' TX rate control algorithm
 
 config MAC80211_RC_MINSTREL
 	bool "Minstrel" if EXPERT
@@ -59,6 +88,11 @@ config MAC80211_RC_MINSTREL_VHT
 	default n
 	---help---
 	  This option enables VHT in the 'minstrel_ht' TX rate control algorithm
+	  
+config MAC80211_RC_MINSTREL2
+	bool "Minstrel2" if EXPERT
+	---help---
+	  This option enables the 'minstrel2' TX rate control algorithm
 
 choice
 	prompt "Default rate control algorithm"
@@ -83,6 +117,13 @@ config MAC80211_RC_DEFAULT_SARF
 	---help---
 	  Select the SARF rate control as the
 	  default rate control algorithm. 
+	  
+config MAC80211_RC_DEFAULT_SARF2
+	bool "SARF2 rate control algorithm"
+	depends on MAC80211_RC_SARF2
+	---help---
+	  Select the SARF2 rate control as the
+	  default rate control algorithm. 	
 
 config MAC80211_RC_DEFAULT_FARF
 	bool "FARF rate control algorithm"
@@ -90,12 +131,25 @@ config MAC80211_RC_DEFAULT_FARF
 	---help---
 	  Select the FARF rate control as the
 	  default rate control algorithm. 
+
+config MAC80211_RC_DEFAULT_FARF2
+	bool "FARF2 rate control algorithm"
+	depends on MAC80211_RC_FARF2
+	---help---
+	  Select the FARF2 rate control as the
+	  default rate control algorithm. 	  
 	  
 config MAC80211_RC_DEFAULT_MINSTREL
 	bool "Minstrel"
 	depends on MAC80211_RC_MINSTREL
 	---help---
 	  Select Minstrel as the default rate control algorithm.
+	  
+config MAC80211_RC_DEFAULT_MINSTREL2
+	bool "Minstrel2"
+	depends on MAC80211_RC_MINSTREL2
+	---help---
+	  Select Minstrel2 as the default rate control algorithm.
 
 
 endchoice
@@ -104,8 +158,14 @@ config MAC80211_RC_DEFAULT
 	string
 	default "minstrel_ht" if MAC80211_RC_DEFAULT_MINSTREL && MAC80211_RC_MINSTREL_HT
 	default "minstrel" if MAC80211_RC_DEFAULT_MINSTREL
+	default "minstrel2" if MAC80211_RC_DEFAULT_MINSTREL2
+	default "farf_ht" if MAC80211_RC_DEFAULT_FARF && MAC80211_RC_FARF_HT
 	default "farf" if MAC80211_RC_DEFAULT_FARF
+	default "farf2" if MAC80211_RC_DEFAULT_FARF2
+	default "sarf_ht" if MAC80211_RC_DEFAULT_SARF && MAC80211_RC_SARF_HT
 	default "sarf" if MAC80211_RC_DEFAULT_SARF
+	default "sarf2" if MAC80211_RC_DEFAULT_SARF2
+	default "indra_ht" if MAC80211_RC_DEFAULT_INDRA && MAC80211_RC_INDRA_HT
 	default "indra" if MAC80211_RC_DEFAULT_INDRA
 	default ""
 
