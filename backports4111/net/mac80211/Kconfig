@@ -32,6 +32,12 @@ config MAC80211_RC_INDRA_HT
 	depends on MAC80211_RC_INDRA
 	---help---
 	  This option enables the 'indra_ht' TX rate control algorithm
+	  
+config MAC80211_RC_INDRA2
+	bool "INDRA2 rate control algorithm" if EXPERT
+	select MAC80211_HAS_RC
+	---help---
+	  This option enables the 'indra2' TX rate control algorithm
 
 config MAC80211_RC_SARF
 	bool "SARF rate control algorithm" if EXPERT
@@ -110,7 +116,14 @@ config MAC80211_RC_DEFAULT_INDRA
 	---help---
 	  Select the INDRA rate control as the
 	  default rate control algorithm. 
-
+	  
+config MAC80211_RC_DEFAULT_INDRA2
+	bool "INDRA2 rate control algorithm"
+	depends on MAC80211_RC_INDRA2
+	---help---
+	  Select the INDRA2 rate control as the
+	  default rate control algorithm. 
+	  
 config MAC80211_RC_DEFAULT_SARF
 	bool "SARF rate control algorithm"
 	depends on MAC80211_RC_SARF
@@ -167,6 +180,7 @@ config MAC80211_RC_DEFAULT
 	default "sarf2" if MAC80211_RC_DEFAULT_SARF2
 	default "indra_ht" if MAC80211_RC_DEFAULT_INDRA && MAC80211_RC_INDRA_HT
 	default "indra" if MAC80211_RC_DEFAULT_INDRA
+	default "indra2" if MAC80211_RC_DEFAULT_INDRA2
 	default ""
 
 endif

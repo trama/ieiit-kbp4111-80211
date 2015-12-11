@@ -56,6 +56,8 @@ rc80211_indra-$(CPTCFG_MAC80211_DEBUGFS) += rc80211_indra_debugfs.o
 
 rc80211_indra_ht-y := rc80211_indra_ht.o
 
+rc80211_indra2-y := rc80211_indra2.o
+
 rc80211_sarf-y := rc80211_sarf.o
 rc80211_sarf-$(CPTCFG_MAC80211_DEBUGFS) += rc80211_sarf_debugfs.o
 
@@ -80,6 +82,7 @@ rc80211_minstrel2-y := rc80211_minstrel2.o
 
 mac80211-$(CPTCFG_MAC80211_RC_INDRA) += $(rc80211_indra-y)
 mac80211-$(CPTCFG_MAC80211_RC_INDRA_HT) += $(rc80211_indra_ht-y)
+mac80211-$(CPTCFG_MAC80211_RC_INDRA2) += $(rc80211_indra2-y)
 mac80211-$(CPTCFG_MAC80211_RC_SARF) += $(rc80211_sarf-y)
 mac80211-$(CPTCFG_MAC80211_RC_SARF_HT) += $(rc80211_sarf_ht-y)
 mac80211-$(CPTCFG_MAC80211_RC_SARF2) += $(rc80211_sarf2-y)

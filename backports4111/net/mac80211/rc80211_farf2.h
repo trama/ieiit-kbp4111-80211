@@ -7,8 +7,8 @@
  * published by the Free Software Foundation.
  */
 
-#ifndef __RC_FARF_H
-#define __RC_FARF_H
+#ifndef __RC_FARF2_H
+#define __RC_FARF2_H
 
 #define N_FARF	10	/* number of consecutive successes to increase rate */
 #define FARF_ADDRESSES 10	/* number of addresses allowed */

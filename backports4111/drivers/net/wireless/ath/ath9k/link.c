@@ -299,6 +299,7 @@ fail_paprd:
  */
 void ath_ani_calibrate(unsigned long data)
 {
+	//printk("MICHELE: ath_ani_calibrate\n");
 	struct ath_softc *sc = (struct ath_softc *)data;
 	struct ath_hw *ah = sc->sc_ah;
 	struct ath_common *common = ath9k_hw_common(ah);

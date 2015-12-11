@@ -436,12 +436,12 @@ void ath9k_hw_bstuck_nfcal(struct ath_hw *ah)
 	 * the baseband update the internal NF value itself, similar to
 	 * what is being done after a full reset.
 	 */
-	if (!test_bit(NFCAL_PENDING, &caldata->cal_flags)) {
+	//if (!test_bit(NFCAL_PENDING, &caldata->cal_flags)) {
 		//printk("MICHELE: start_nfcal from bstuck_nfcal\n");
-		ath9k_hw_start_nfcal(ah, true);
-	}
-	else if (!(REG_READ(ah, AR_PHY_AGC_CONTROL) & AR_PHY_AGC_CONTROL_NF))
-		ath9k_hw_getnf(ah, ah->curchan);
+		//ath9k_hw_start_nfcal(ah, true);
+	//}
+	//else if (!(REG_READ(ah, AR_PHY_AGC_CONTROL) & AR_PHY_AGC_CONTROL_NF))
+		//ath9k_hw_getnf(ah, ah->curchan);
 
 	set_bit(NFCAL_INTF, &caldata->cal_flags);
 }

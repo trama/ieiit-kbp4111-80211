@@ -1620,9 +1620,16 @@ static int __init ieee80211_init(void)
     ret = rc80211_indra_ht_init();      
     if (ret)
         goto err_indra_ht;
+        
+    // AGGIUNTO
+    ret = rc80211_indra2_init();      
+    if (ret)
+        goto err_indra2;
     
     return 0;
     
+ err_indra2:               // AGGIUNTO
+    rc80211_indra_ht_exit(); // AGGIUNTO   
  err_indra_ht:               // AGGIUNTO
     rc80211_indra_exit(); // AGGIUNTO
  err_indra:                  // AGGIUNTO
@@ -1669,6 +1676,7 @@ static void __exit ieee80211_exit(void)
     rc80211_sarf2_exit();       // AGGIUNTO
     rc80211_indra_ht_exit();    // AGGIUNTO
     rc80211_indra_exit();       // AGGIUNTO
+    rc80211_indra2_exit();       // AGGIUNTO
 
     ieee80211s_stop();
 

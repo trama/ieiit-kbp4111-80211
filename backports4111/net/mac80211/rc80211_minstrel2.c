@@ -26,7 +26,7 @@ extern int rclog_in;
 const unsigned int nbps_minstrel2[] = {54, 108, 162, 216, 324, 432, 486, 540};
 
 static u8 sample_table[SAMPLE_COLUMNS][MCS_GROUP_RATES] __read_mostly;
-static u8 ref_size;
+static u64 ref_size;
 
 static void
 minstrel2_update_rates(struct minstrel_priv *mp, struct minstrel_sta_info *mi);
@@ -553,7 +553,7 @@ minstrel2_get_rate(void *priv, struct ieee80211_sta *sta, void *priv_sta,
 	
 	/* Update add_idx */
 	mi->add_idx = record;
-	printk("MICHELE: get_rate called with packet for %2x:%2x:%2x:%2x:%2x:%2x, add_idx=%u, new_add_idx=%u\n",dst[0],dst[1],dst[2],dst[3],dst[4],dst[5],mi->add_idx,mi->new_add_idx);
+	//printk("MICHELE: get_rate called with packet for %2x:%2x:%2x:%2x:%2x:%2x, add_idx=%u, new_add_idx=%u\n",dst[0],dst[1],dst[2],dst[3],dst[4],dst[5],mi->add_idx,mi->new_add_idx);
 	
 	/* Retrieve next sample index */
 	if (mp->hw->max_rates == 1 &&
@@ -685,7 +685,6 @@ static void *
 minstrel2_alloc_sta(void *priv, struct ieee80211_sta *sta, gfp_t gfp)
 {
 	struct minstrel_sta_info *mi;
-	printk("MICHELE: alloc_sta\n");
 
 	mi = kzalloc(sizeof(*mi), gfp);
 	if (!mi)

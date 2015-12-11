@@ -326,8 +326,6 @@ static void *
 farf2_alloc_sta(void *priv, struct ieee80211_sta *sta, gfp_t gfp)
 {
 	struct farf_sta_info *fi;
-	
-	printk("MICHELE: alloc sta\n");
 
 	/* Allocate memory */
 	fi = kzalloc(sizeof(struct farf_sta_info), gfp);

@@ -183,6 +183,8 @@ int rc80211_indra_init(void);
 void rc80211_indra_exit(void);
 int rc80211_indra_ht_init(void);
 void rc80211_indra_ht_exit(void);
+int rc80211_indra2_init(void);
+void rc80211_indra2_exit(void);
 
 #ifdef CPTCFG_MAC80211_RC_MINSTREL
 int rc80211_minstrel_init(void);

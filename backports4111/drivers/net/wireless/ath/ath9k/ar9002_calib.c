@@ -94,6 +94,7 @@ static bool ar9002_hw_per_calibration(struct ath_hw *ah,
 		if (!(REG_READ(ah, AR_PHY_TIMING_CTRL4(0)) &
 		      AR_PHY_TIMING_CTRL4_DO_CAL)) {
 
+			//printk("MICHELE: ar9002_hw_per_calibration bit down\n");
 			currCal->calData->calCollect(ah);
 			ah->cal_samples++;
 
@@ -668,27 +669,26 @@ static int ar9002_hw_calibrate(struct ath_hw *ah, struct ath9k_channel *chan,
 {
 	struct ath9k_cal_list *currCal = ah->cal_list_curr;
 	bool nfcal, nfcal_pending = false, percal_pending;
-	//bool finished = false;
+	bool finished = false;
 	int ret;
 	//unsigned long long start, stop;
 
 	nfcal = !!(REG_READ(ah, AR_PHY_AGC_CONTROL) & AR_PHY_AGC_CONTROL_NF);
+	//printk("MICHELE: ar9002_hw_calibrate\n");
 	
-	//// AGGIUNTO
-	//if (longcal) {
-		////start = rdtsc();
-		////printk("MICHELE: start_nfcal\n");
-		//ath9k_hw_start_nfcal(ah, false);		
-	//}
-	//else {
-		////REG_CLR_BIT(ah, AR_PHY_AGC_CONTROL, AR_PHY_AGC_CONTROL_NF);
+	// AGGIUNTO
+	if (longcal) {
+		//printk("MICHELE: start_nfcal\n");
+		ath9k_hw_start_nfcal(ah, true);		
+	}
+	else {
+		//REG_CLR_BIT(ah, AR_PHY_AGC_CONTROL, AR_PHY_AGC_CONTROL_NF);
 		//ath9k_hw_getnf(ah, chan);
-		////while (!finished) {
-			////finished = ath9k_hw_getnf(ah, chan);
-		////}
-		////stop = rdtsc();
-		////printk("MICHELE: end getnf\n");	
-	//}
+		while (!finished) {
+			finished = ath9k_hw_getnf(ah, chan);
+		}
+		//printk("MICHELE: end getnf\n");	
+	}
 	
 	if (ah->caldata)
 		nfcal_pending = test_bit(NFCAL_PENDING, &ah->caldata->cal_flags);
@@ -698,44 +698,46 @@ static int ar9002_hw_calibrate(struct ath_hw *ah, struct ath9k_channel *chan,
 			   currCal->calState == CAL_WAITING));
 	if (percal_pending && !nfcal) {
 		if (!ar9002_hw_per_calibration(ah, chan, rxchainmask, currCal)) {
+			//printk("MICHELE: ar9002_hw_calibrate, EXIT1->hw_per_calibration=false\n");
 			return 0;
 		}
 
 		ah->cal_list_curr = currCal = currCal->calNext;
 		if (currCal->calState == CAL_WAITING) {
+			//printk("MICHELE: ar9002_hw_calibrate, EXIT2->reset calibration\n");
 			ath9k_hw_reset_calibration(ah, currCal);
 			return 0;
 		}
 	}
 	
-	// RIMOSSO
-	/* Do NF cal only at longer intervals */
-	if (longcal || nfcal_pending) {
-		//printk("MICHELE: ar9002_calibrate, nfcal\n");
-		/*
-		 * Get the value from the previous NF cal and update
-		 * history buffer.
-		 */
-		if (ath9k_hw_getnf(ah, chan)) {
-			/*
-			 * Load the NF from history buffer of the current
-			 * channel.
-			 * NF is slow time-variant, so it is OK to use a
-			 * historical value.
-			 */
-			ret = ath9k_hw_loadnf(ah, ah->curchan);
-			if (ret < 0)
-				return ret;
-		}
-
-		if (longcal) {
-			//printk("MICHELE: start_nfcal from hw_calibrate\n");
-			ath9k_hw_start_nfcal(ah, false);
-			/* Do periodic PAOffset Cal */
-			ar9002_hw_pa_cal(ah, false);
-			ar9002_hw_olc_temp_compensation(ah);
-		}
-	}
+	//// RIMOSSO
+	///* Do NF cal only at longer intervals */
+	//if (longcal || nfcal_pending) {
+		//printk("MICHELE: ar9002_hw_calibrate, nfcal");
+		///*
+		 //* Get the value from the previous NF cal and update
+		 //* history buffer.
+		 //*/
+		//if (ath9k_hw_getnf(ah, chan)) {
+			///*
+			 //* Load the NF from history buffer of the current
+			 //* channel.
+			 //* NF is slow time-variant, so it is OK to use a
+			 //* historical value.
+			 //*/
+			//ret = ath9k_hw_loadnf(ah, ah->curchan);
+			//if (ret < 0)
+				//return ret;
+		//}
+		//printk("--longcal\n");
+		//if (longcal) {
+			////printk("MICHELE: start_nfcal from hw_calibrate\n");
+			//ath9k_hw_start_nfcal(ah, false);
+			///* Do periodic PAOffset Cal */
+			//ar9002_hw_pa_cal(ah, false);
+			//ar9002_hw_olc_temp_compensation(ah);
+		//}
+	//}
 
 	return !percal_pending;
 }

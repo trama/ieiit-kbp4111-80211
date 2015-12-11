@@ -697,12 +697,12 @@ void ath9k_csa_update(struct ath_softc *sc);
 /* Link Monitoring */
 /*******************/
 
-#define ATH_STA_SHORT_CALINTERVAL 1000   /* 1 second */
-#define ATH_AP_SHORT_CALINTERVAL  100     /* 100 ms */
+#define ATH_STA_SHORT_CALINTERVAL 10   /* 1 second */
+#define ATH_AP_SHORT_CALINTERVAL  10     /* 100 ms */
 #define ATH_ANI_POLLINTERVAL_OLD  100     /* 100 ms */
 #define ATH_ANI_POLLINTERVAL_NEW  1000    /* 1000 ms */
-#define ATH_LONG_CALINTERVAL_INT  1000    /* 1000 ms */
-#define ATH_LONG_CALINTERVAL      30000   /* 30 seconds */
+#define ATH_LONG_CALINTERVAL_INT  50    /* 1000 ms */
+#define ATH_LONG_CALINTERVAL      50   /* 30 seconds */
 #define ATH_RESTART_CALINTERVAL   1200000 /* 20 minutes */
 #define ATH_ANI_MAX_SKIP_COUNT    10
 #define ATH_PAPRD_TIMEOUT         100 /* msecs */

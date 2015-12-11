@@ -7,8 +7,8 @@
  * published by the Free Software Foundation.
  */
 
-#ifndef __RC_SARF_H
-#define __RC_SARF_H
+#ifndef __RC_SARF2_H
+#define __RC_SARF2_H
 
 #define N_SARF	10	/* number of consecutive successes to increase rate */
 #define K_SARF	2	/* number of consecutive failures to decrease rate */

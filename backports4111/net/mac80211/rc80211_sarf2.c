@@ -256,7 +256,7 @@ sarf2_get_rate(void *priv, struct ieee80211_sta *sta,
 	
 	/* Update add_idx */
 	si->add_idx = record;
-	printk("MICHELE: get_rate called with packet for %2x:%2x:%2x:%2x:%2x:%2x, add_idx=%u, new_add_idx=%u\n",dst[0],dst[1],dst[2],dst[3],dst[4],dst[5],si->add_idx,si->new_add_idx);
+	//printk("MICHELE: get_rate called with packet for %2x:%2x:%2x:%2x:%2x:%2x, add_idx=%u, new_add_idx=%u\n",dst[0],dst[1],dst[2],dst[3],dst[4],dst[5],si->add_idx,si->new_add_idx);
 	
 	/* Use current rate once */
 	ratetbl->rate[0].idx = si->r[si->curr_rate[si->add_idx]].rix;
